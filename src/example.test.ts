@@ -32,3 +32,18 @@ test('basic CRUD example', async () => {
   const count = await orm.em.count(User, { email: 'foo' });
   expect(count).toBe(0);
 });
+
+test('upsert should not modify data object unless it is an entity', async () => {
+  const data = { name: 'Foo', email: 'foo' };
+  const user = orm.em.create(User, data);
+  await orm.em.flush();
+  orm.em.clear();
+
+  expect(data).toMatchObject({ name: 'Foo', email: 'foo' });
+
+  data.name = 'Bar';
+  const newUser = await orm.em.upsert(User, data);
+
+  expect(data).toMatchObject({ name: 'Bar', email: 'foo' });
+  expect({ name: 'Bar', email: 'foo' }).toMatchObject(data);
+});
